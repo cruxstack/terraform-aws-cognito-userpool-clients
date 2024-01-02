@@ -1,8 +1,10 @@
 locals {
-  enabled     = module.this.enabled
-  userpool_id = var.userpool_id
+  enabled                 = module.this.enabled
+  userpool_id             = var.userpool_id
+  userpool_discovery_data = local.enabled ? jsondecode(data.http.cognito_user_pool[0].body) : null
 
   aws_kv_namespace = trim(coalesce(var.aws_kv_namespace, "cognito-userpool-clients/${local.userpool_id}"), "/")
+  aws_region_name  = local.enabled ? data.aws_region.current[0].name : ""
 
   defaults = merge(var.client_defaults, { userpool_id = var.userpool_id })
 
@@ -91,6 +93,12 @@ locals {
   builtin_write_attrs = [
     for x in local.builtin_read_attrs : x if !contains(["email_verified", "phone_number_verified"], x)
   ]
+
+
+}
+
+data "aws_region" "current" {
+  count = local.enabled ? 1 : 0
 }
 
 # ================================================================== clients ===
@@ -170,11 +178,23 @@ resource "aws_secretsmanager_secret_version" "clients" {
 
   secret_id = aws_secretsmanager_secret.clients[each.key].id
   secret_string = jsonencode({
-    user_pool_id  = local.userpool_id
-    client_id     = each.value.id
-    client_secret = each.value.client_secret
-    scopes        = each.value.allowed_oauth_scopes
-    callback_urls = each.value.callback_urls
-    logout_urls   = each.value.logout_urls
+    user_pool_id       = local.userpool_id
+    userpool_id        = local.userpool_id
+    client_id          = each.value.id
+    client_secret      = each.value.client_secret
+    scopes             = each.value.allowed_oauth_scopes
+    callback_urls      = each.value.callback_urls
+    logout_urls        = each.value.logout_urls
+    authorize_endpoint = local.userpool_discovery_data.authorization_endpoint
+    token_endpoint     = local.userpool_discovery_data.token_endpoint
+    userinfo_endpoint  = local.userpool_discovery_data.userinfo_endpoint
   })
+}
+
+# ================================================================== lookups ===
+
+data "http" "cognito_user_pool" {
+  count = local.enabled ? 1 : 0
+
+  url = "https://cognito-idp.${local.aws_region_name}.amazonaws.com/${local.userpool_id}/.well-known/openid-configuration"
 }
