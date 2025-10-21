@@ -59,6 +59,13 @@ locals {
         css_path   = try(coalesce(var.clients[client_name].ui_customization.css_path, local.defaults.ui_customization.css_path), "")
         image_path = try(coalesce(var.clients[client_name].ui_customization.image_path, local.defaults.ui_customization.image_path), "")
       }
+
+      managed_login_branding = {
+        enabled                     = coalesce(var.clients[client_name].managed_login_branding.enabled, local.defaults.managed_login_branding.enabled)
+        assets                      = try(coalescelist(var.clients[client_name].managed_login_branding.assets, local.defaults.managed_login_branding.assets), [])
+        settings                    = try(coalesce(var.clients[client_name].managed_login_branding.settings, local.defaults.managed_login_branding.settings), null)
+        use_cognito_provided_values = coalesce(var.clients[client_name].managed_login_branding.use_cognito_provided_values, local.defaults.managed_login_branding.use_cognito_provided_values)
+      }
     }) if var.clients[client_name].enabled
   }
 
@@ -66,6 +73,10 @@ locals {
     for client_name, client_opts in local.clients : client_name => merge({},
       client_opts.ui_customization
     ) if client_opts.ui_customization.enabled && (client_opts.ui_customization.css_path != "" || client_opts.ui_customization.image_path != "")
+  }
+
+  managed_login_brandings = {
+    for client_name, client_opts in local.clients : client_name => client_opts.managed_login_branding if client_opts.managed_login_branding.enabled
   }
 
   builtin_read_attrs = [
@@ -159,6 +170,27 @@ resource "aws_cognito_user_pool_ui_customization" "this" {
   client_id    = aws_cognito_user_pool_client.this[each.key].id
   css          = each.value.css_path != "" ? file(each.value.css_path) : null
   image_file   = each.value.image_path != "" ? filebase64(each.value.image_path) : null
+}
+
+resource "aws_cognito_managed_login_branding" "this" {
+  for_each = local.managed_login_brandings
+
+  user_pool_id = aws_cognito_user_pool_client.this[each.key].user_pool_id
+  client_id    = aws_cognito_user_pool_client.this[each.key].id
+
+  settings                    = each.value.use_cognito_provided_values ? null : each.value.settings
+  use_cognito_provided_values = each.value.use_cognito_provided_values ? true : null
+
+  dynamic "asset" {
+    for_each = each.value.assets
+    content {
+      category    = asset.value.category
+      color_mode  = asset.value.color_mode
+      extension   = asset.value.extension
+      resource_id = asset.value.resource_id
+      bytes       = base64decode(asset.value.bytes_base64)
+    }
+  }
 }
 
 # ------------------------------------------------------------------ secrets ---
