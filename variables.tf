@@ -19,13 +19,7 @@ variable "client_defaults" {
       refresh_token_auth       = optional(bool, true)
       user_password_auth       = optional(bool, false)
       user_srp_auth            = optional(bool, true)
-      }), {
-      admin_user_password_auth = false
-      custom_auth              = false
-      refresh_token_auth       = true
-      user_password_auth       = false
-      user_srp_auth            = true
-    })
+    }), {})
 
     read_attributes                   = optional(list(string), [])
     read_attributes_builtin_included  = optional(bool, true)
@@ -43,31 +37,32 @@ variable "client_defaults" {
       access_token  = optional(number, 10)
       id_token      = optional(number, 60)
       refresh_token = optional(number, 4320)
-      }), {
-      access_token  = 10
-      id_token      = 60
-      refresh_token = 4320
-    })
+    }), {})
 
     token_validity_units = optional(object({
       access_token  = optional(string, "minutes")
       id_token      = optional(string, "minutes")
       refresh_token = optional(string, "minutes")
-      }), {
-      access_token  = "minutes"
-      id_token      = "minutes"
-      refresh_token = "minutes"
-    })
+    }), {})
 
     ui_customization = optional(object({
       enabled    = optional(bool, false)
       css_path   = optional(string, "")
       image_path = optional(string, "")
-      }), {
-      enabled    = false
-      css_path   = ""
-      image_path = ""
-    })
+    }), {})
+
+    managed_login_branding = optional(object({
+      enabled                     = optional(bool, false)
+      settings                    = optional(string)
+      use_cognito_provided_values = optional(bool, false)
+      assets = optional(list(object({
+        category     = string
+        color_mode   = string
+        extension    = string
+        resource_id  = string
+        bytes_base64 = string
+      })), [])
+    }), {})
   })
   description = "Default configurations for each client."
   default     = {}
@@ -120,6 +115,19 @@ variable "clients" {
       enabled    = optional(bool)
       css_path   = optional(string)
       image_path = optional(string)
+    }), {})
+
+    managed_login_branding = optional(object({
+      enabled                     = optional(bool)
+      settings                    = optional(string)
+      use_cognito_provided_values = optional(bool)
+      assets = optional(list(object({
+        category     = string
+        color_mode   = string
+        extension    = string
+        resource_id  = string
+        bytes_base64 = string
+      })))
     }), {})
   }))
   description = "Map of client-specific configurations. The key is the client name."

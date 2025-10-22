@@ -17,3 +17,8 @@ output "client_secret_names" {
     for client_name, client_secret in aws_secretsmanager_secret.clients : client_name => client_secret.name
   }
 }
+
+output "managed_login_brandings" {
+  description = "Map of managed login branding resources for the Cognito user pool clients, keyed by client name."
+  value       = aws_cognito_managed_login_branding.this
+}

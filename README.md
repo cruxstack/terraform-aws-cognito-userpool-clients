@@ -18,7 +18,12 @@ module "cognito_userpool_clients" {
   }
 
   clients = {
-    internal_web_app = {}
+    internal_web_app = {
+      managed_login_branding = {
+        enabled                     = true
+        use_cognito_provided_values = true
+      }
+    }
     public_web_app   = {}
     mobile_app       = {}
     foobar_service   = {}
