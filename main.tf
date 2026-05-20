@@ -1,10 +1,10 @@
 locals {
   enabled                 = module.this.enabled
   userpool_id             = var.userpool_id
-  userpool_discovery_data = local.enabled ? jsondecode(data.http.cognito_user_pool[0].body) : null
+  userpool_discovery_data = local.enabled ? jsondecode(data.http.cognito_user_pool[0].response_body) : null
 
   aws_kv_namespace = trim(coalesce(var.aws_kv_namespace, "cognito-userpool-clients/${local.userpool_id}"), "/")
-  aws_region_name  = local.enabled ? data.aws_region.current[0].name : ""
+  aws_region_name  = local.enabled ? data.aws_region.current[0].region : ""
 
   defaults = merge(var.client_defaults, { userpool_id = var.userpool_id })
 
