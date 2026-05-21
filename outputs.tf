@@ -1,9 +1,11 @@
 output "userpool_id" {
-  value = local.userpool_id
+  description = "ID of the Cognito user pool the module is configured against."
+  value       = local.userpool_id
 }
 
 output "userpool_discovery_data" {
-  value = local.userpool_discovery_data
+  description = "Decoded OpenID Connect discovery document for the Cognito user pool."
+  value       = local.userpool_discovery_data
 }
 
 output "clients" {
