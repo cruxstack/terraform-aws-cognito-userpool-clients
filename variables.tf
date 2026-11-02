@@ -12,11 +12,13 @@ variable "client_defaults" {
     generate_secret               = optional(bool, true)
     token_revocation_enabled      = optional(bool, true)
     prevent_user_existence_errors = optional(string, "ENABLED")
+    auth_session_validity         = optional(number, 3)
 
     cognito_auths = optional(object({
       admin_user_password_auth = optional(bool, false)
       custom_auth              = optional(bool, false)
       refresh_token_auth       = optional(bool, true)
+      user_auth                = optional(bool, false)
       user_password_auth       = optional(bool, false)
       user_srp_auth            = optional(bool, true)
     }), {})
@@ -78,11 +80,13 @@ variable "clients" {
     generate_secret               = optional(bool)
     token_revocation_enabled      = optional(bool)
     prevent_user_existence_errors = optional(string)
+    auth_session_validity         = optional(number)
 
     cognito_auths = optional(object({
       admin_user_password_auth = optional(bool)
       custom_auth              = optional(bool)
       refresh_token_auth       = optional(bool)
+      user_auth                = optional(bool)
       user_password_auth       = optional(bool)
       user_srp_auth            = optional(bool)
     }), {})

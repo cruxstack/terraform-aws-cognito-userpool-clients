@@ -16,11 +16,13 @@ locals {
       generate_secret               = coalesce(var.clients[client_name].generate_secret, local.defaults.generate_secret)
       token_revocation_enabled      = coalesce(var.clients[client_name].token_revocation_enabled, local.defaults.token_revocation_enabled)
       prevent_user_existence_errors = coalesce(var.clients[client_name].prevent_user_existence_errors, local.defaults.prevent_user_existence_errors)
+      auth_session_validity         = coalesce(var.clients[client_name].auth_session_validity, local.defaults.auth_session_validity)
 
       cognito_auths = {
         admin_user_password_auth = coalesce(var.clients[client_name].cognito_auths.admin_user_password_auth, local.defaults.cognito_auths.admin_user_password_auth)
         custom_auth              = coalesce(var.clients[client_name].cognito_auths.custom_auth, local.defaults.cognito_auths.custom_auth)
         refresh_token_auth       = coalesce(var.clients[client_name].cognito_auths.refresh_token_auth, local.defaults.cognito_auths.refresh_token_auth)
+        user_auth                = coalesce(var.clients[client_name].cognito_auths.user_auth, local.defaults.cognito_auths.user_auth)
         user_password_auth       = coalesce(var.clients[client_name].cognito_auths.user_password_auth, local.defaults.cognito_auths.user_password_auth)
         user_srp_auth            = coalesce(var.clients[client_name].cognito_auths.user_srp_auth, local.defaults.cognito_auths.user_srp_auth)
       }
@@ -133,6 +135,7 @@ resource "aws_cognito_user_pool_client" "this" {
     each.value.cognito_auths.admin_user_password_auth ? "ALLOW_ADMIN_USER_PASSWORD_AUTH" : "",
     each.value.cognito_auths.custom_auth ? "ALLOW_CUSTOM_AUTH" : "",
     each.value.cognito_auths.refresh_token_auth ? "ALLOW_REFRESH_TOKEN_AUTH" : "",
+    each.value.cognito_auths.user_auth ? "ALLOW_USER_AUTH" : "",
     each.value.cognito_auths.user_password_auth ? "ALLOW_USER_PASSWORD_AUTH" : "",
     each.value.cognito_auths.user_srp_auth ? "ALLOW_USER_SRP_AUTH" : "",
   ])
@@ -140,6 +143,7 @@ resource "aws_cognito_user_pool_client" "this" {
   enable_token_revocation       = each.value.token_revocation_enabled
   generate_secret               = each.value.generate_secret
   prevent_user_existence_errors = each.value.prevent_user_existence_errors
+  auth_session_validity         = each.value.auth_session_validity
 
   read_attributes  = each.value.read_attributes
   write_attributes = each.value.write_attributes
